@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Рейтинг</title>
+</head>
+<body>
+  <h1>Рейтинг водиц и энергосов</h1>
+  <div class="gallery" id="gallery"></div>
+
+  <script>
+    const images = [
+      { id: 'img1', name: 'Флаш энергия. Мохито', src: 'https://sun9-71.userapi.com/impg/lqQFYMB94N5GPDsysasHUhi5cu8gSLQx0rqjtg/_PvH3OrvRC0.jpg?size=447x596&quality=95&sign=2de70b7195b118d5e12dc172837f3d31&type=album' },
+      { id: 'img2', name: 'Горилла. Пич', src: 'https://sun9-69.userapi.com/impg/W06NJ4EF6vc20_ZTC59Bj6P6pz3-ZFJmkTqeYg/2gp_g8o-jNQ.jpg?size=447x596&quality=95&sign=930290355fc93f81799b60c04b70d623&type=album' },
+      { id: 'img3', name: 'Адреналин. Фор геймерс', src: 'https://sun9-22.userapi.com/impg/6aBPoA-2D6UCm_loDx-Zm3h1pdf3ia3EKryvQg/9LalqBDtHBI.jpg?size=447x627&quality=95&sign=150a46af36ca2050e8df5de220448f15&type=album' },
+      { id: 'img4', name: 'Вольт. Манго - Лайм', src: 'https://sun9-29.userapi.com/impg/tEjtLrzoEBTM70sL8ZwnsEr5wChWgUlnuhvzmQ/CF5GroLSml0.jpg?size=447x705&quality=95&sign=e04af2bb76a9061b5daa05bc91bd82ce&type=album' },
+      { id: 'img5', name: 'Ягуар. Ягоды', src: 'https://sun9-33.userapi.com/impg/im8dgv0g1qOfJy7JIYisnOHkLF40pCdQVQfpzA/X3YCYLi2THU.jpg?size=447x794&quality=95&sign=2a03ce4a2dc986e3f346242998eeab3d&type=album' },
+
+      { id: 'img6', name: 'ЕОН. Лемон - Трава', src: 'https://sun9-68.userapi.com/impg/lTOw5_JEzOHuPchXQUdD9owo4g0QyGeLHLWy9Q/TUzVRX69tUk.jpg?size=393x660&quality=95&sign=1264d0b6570e9cfec1afc22711f49241&type=album' },
+      { id: 'img7', name: 'Адреналин. Оригинал', src: 'https://sun9-62.userapi.com/impg/nOX4-bhW8UpkOYIqUjamlzhRJTauBY-hoabb1g/GVGp_FIei4k.jpg?size=398x651&quality=95&sign=47623f29f5aa6f3074a1b491494a38ee&type=album' },
+      { id: 'img8', name: 'Флаш. Оригинал', src: 'https://sun9-5.userapi.com/impg/Nzj0976nj8l6bTgc76ZEjfTsN_zsU-7A9dkr0A/Z__FvIFa6Cc.jpg?size=351x639&quality=95&sign=2c08b870c962b8aa1cd7ec5018b45f7d&type=album' },
+      { id: 'img9', name: '8. Гранат', src: 'https://sun9-44.userapi.com/impg/GKDCZowaKycoofzrXtfzt0GbZNzv6BP8ssNt1w/0EPyUlYTlcw.jpg?size=346x671&quality=95&sign=ef9c8059201fb9e236df38d314bf35f0&type=album' },
+      { id: 'img10', name: 'Солар. Витамин D', src: 'https://sun1-47.userapi.com/impg/53f5kHBpVdZR4vm4rvoarf4vvFW1VJD-zhel0g/0uDF70SFkeE.jpg?size=553x863&quality=95&sign=319c5275408ea1303e8370feb8579222&type=album' },
+    ];
+
+    const gallery = document.getElementById('gallery');
+
+    images.forEach(img => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <h3>${img.name}</h3>
+        <img src="${img.src}" alt="${img.name}" />
+        <div class="stars" data-id="${img.id}">
+          ${[1,2,3,4,5].map(i => `<span data-value="${i}">&#9733;</span>`).join('')}
+        </div>
+        <div class="rating-info" id="info-${img.id}">Оценок: 0, Средняя: 0</div>
+      `;
+      gallery.appendChild(card);
+    });
+
+    function getRatingData(id) {
+      return JSON.parse(localStorage.getItem('rating_' + id)) || { total: 0, sum: 0 };
+    }
+
+    function saveRating(id, value) {
+      const data = getRatingData(id);
+      data.total += 1;
+      data.sum += value;
+      localStorage.setItem('rating_' + id, JSON.stringify(data));
+      updateRatingDisplay(id);
+    }
+
+    function updateRatingDisplay(id) {
+      const info = document.getElementById('info-' + id);
+      const data = getRatingData(id);
+      const avg = data.total ? (data.sum / data.total).toFixed(1) : 0;
+      info.textContent = `Оценок: ${data.total}, Средняя: ${avg}`;
+    }
+
+    function highlightStars(starContainer, upTo, className) {
+      const stars = starContainer.querySelectorAll('span');
+      stars.forEach(star => {
+        star.classList.remove(className);
+        if (+star.dataset.value <= upTo) {
+          star.classList.add(className);
+        }
+      });
+    }
+
+    document.querySelectorAll('.stars').forEach(starsDiv => {
+      const id = starsDiv.dataset.id;
+      updateRatingDisplay(id);
+
+      starsDiv.addEventListener('mouseover', e => {
+        if (e.target.tagName === 'SPAN') {
+          highlightStars(starsDiv, e.target.dataset.value, 'hover');
+        }
+      });
+
+      starsDiv.addEventListener('mouseout', () => {
+        starsDiv.querySelectorAll('span').forEach(star => star.classList.remove('hover'));
+      });
+
+      starsDiv.addEventListener('click', e => {
+        if (e.target.tagName === 'SPAN') {
+            if (localStorage.getItem('voted_' + id)) {
+            alert('Менять низя!');
+            return;
+            }
+            const value = +e.target.dataset.value;
+            highlightStars(starsDiv, value, 'selected');
+            saveRating(id, value);
+            localStorage.setItem('voted_' + id, true);
+        }
+        });
+
+    });
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+  
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+  
+    .card {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+  
+    .card img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+  
+    .stars {
+      margin-top: 10px;
+      cursor: pointer;
+    }
+  
+    .stars span {
+      font-size: 24px;
+      color: #ccc;
+      transition: color 0.3s;
+    }
+  
+    .stars span.selected,
+    .stars span.hover {
+      color: gold;
+    }
+  
+    .rating-info {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #444;
+    }
+  </style>
+  
+</body>
+</html>
